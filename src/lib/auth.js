@@ -6,15 +6,18 @@ const socialProviders = {};
 
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   socialProviders.google = {
-    clientId: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    clientId: process.env.GOOGLE_CLIENT_ID.trim(),
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET.trim(),
   };
 }
 
-if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+const githubClientId = (process.env.GITHUB_CLIENT_ID || process.env.GITHUB_ID || "").trim();
+const githubClientSecret = (process.env.GITHUB_CLIENT_SECRET || process.env.GITHUB_SECRET || "").trim();
+
+if (githubClientId && githubClientSecret) {
   socialProviders.github = {
-    clientId: process.env.GITHUB_CLIENT_ID,
-    clientSecret: process.env.GITHUB_CLIENT_SECRET,
+    clientId: githubClientId,
+    clientSecret: githubClientSecret,
   };
 }
 

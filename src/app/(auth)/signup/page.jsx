@@ -69,10 +69,13 @@ function SignUpContent() {
 
   const handleGitHubSignIn = async () => {
     try {
-      await signIn.social({
+      const res = await signIn.social({
         provider: "github",
         callbackURL: "/",
       });
+      if (res?.error) {
+        toast.error("গিটহাব সাইন ইন ব্যর্থ হয়েছে");
+      }
     } catch {
       toast.error("গিটহাব সাইন ইন ব্যর্থ হয়েছে");
     }
