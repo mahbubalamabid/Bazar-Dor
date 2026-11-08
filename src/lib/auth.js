@@ -21,9 +21,26 @@ if (githubClientId && githubClientSecret) {
   };
 }
 
+const getBaseURL = () => {
+  if (process.env.BETTER_AUTH_URL) return process.env.BETTER_AUTH_URL.replace(/\/+$/, "");
+  if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL.replace(/\/+$/, "");
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return "http://localhost:3000";
+};
+
+const trustedOrigins = [
+  process.env.BETTER_AUTH_URL ? process.env.BETTER_AUTH_URL.replace(/\/+$/, "") : null,
+  process.env.NEXT_PUBLIC_BASE_URL ? process.env.NEXT_PUBLIC_BASE_URL.replace(/\/+$/, "") : null,
+  process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : null,
+  process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+  "http://localhost:3000",
+].filter(Boolean);
+
 export const auth = betterAuth({
-  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
-  secret: process.env.BETTER_AUTH_SECRET || "default_secret_for_development_mode_only",
+  baseURL: getBaseURL(),
+  secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET,
+  trustedOrigins,
   emailAndPassword: {
     enabled: true,
     autoSignIn: false,
@@ -32,5 +49,7 @@ export const auth = betterAuth({
   database: mongodbAdapter(db, {
     client,
   }),
+  advanced: {
+    useSecureCookies: process.env.NODE_ENV === "production",
+  },
 });
-
