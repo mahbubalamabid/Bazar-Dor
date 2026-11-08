@@ -58,10 +58,13 @@ function SignUpContent() {
 
   const handleGoogleSignIn = async () => {
     try {
-      await signIn.social({
+      const res = await signIn.social({
         provider: "google",
         callbackURL: "/",
       });
+      if (res?.error) {
+        toast.error(res.error.message || "গুগল সাইন ইন ব্যর্থ হয়েছে");
+      }
     } catch {
       toast.error("গুগল সাইন ইন ব্যর্থ হয়েছে");
     }
@@ -74,7 +77,7 @@ function SignUpContent() {
         callbackURL: "/",
       });
       if (res?.error) {
-        toast.error("গিটহাব সাইন ইন ব্যর্থ হয়েছে");
+        toast.error(res.error.message || "গিটহাব সাইন ইন ব্যর্থ হয়েছে");
       }
     } catch {
       toast.error("গিটহাব সাইন ইন ব্যর্থ হয়েছে");

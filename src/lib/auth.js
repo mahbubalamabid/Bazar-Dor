@@ -4,10 +4,13 @@ import { client, db } from "./db";
 
 const socialProviders = {};
 
-if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+const googleClientId = (process.env.GOOGLE_CLIENT_ID || "").trim();
+const googleClientSecret = (process.env.GOOGLE_CLIENT_SECRET || "").trim();
+
+if (googleClientId && googleClientSecret) {
   socialProviders.google = {
-    clientId: process.env.GOOGLE_CLIENT_ID.trim(),
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET.trim(),
+    clientId: googleClientId,
+    clientSecret: googleClientSecret,
   };
 }
 
@@ -18,22 +21,27 @@ if (githubClientId && githubClientSecret) {
   socialProviders.github = {
     clientId: githubClientId,
     clientSecret: githubClientSecret,
+    scope: ["read:user", "user:email"],
+    mapProfileToUser: (profile) => ({
+      email: profile.email || `${profile.login}@users.noreply.github.com`,
+    }),
   };
 }
 
 const getBaseURL = () => {
-  if (process.env.BETTER_AUTH_URL) return process.env.BETTER_AUTH_URL.replace(/\/+$/, "");
-  if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL.replace(/\/+$/, "");
-  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  if (process.env.BETTER_AUTH_URL) return process.env.BETTER_AUTH_URL.trim().replace(/\/+$/, "");
+  if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL.trim().replace(/\/+$/, "");
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL.trim()}`;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL.trim()}`;
   return "http://localhost:3000";
 };
 
 const trustedOrigins = [
-  process.env.BETTER_AUTH_URL ? process.env.BETTER_AUTH_URL.replace(/\/+$/, "") : null,
-  process.env.NEXT_PUBLIC_BASE_URL ? process.env.NEXT_PUBLIC_BASE_URL.replace(/\/+$/, "") : null,
-  process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : null,
-  process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+  process.env.BETTER_AUTH_URL ? process.env.BETTER_AUTH_URL.trim().replace(/\/+$/, "") : null,
+  process.env.NEXT_PUBLIC_BASE_URL ? process.env.NEXT_PUBLIC_BASE_URL.trim().replace(/\/+$/, "") : null,
+  process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL.trim()}` : null,
+  process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL.trim()}` : null,
+  "https://*.vercel.app",
   "http://localhost:3000",
 ].filter(Boolean);
 
@@ -46,6 +54,12 @@ export const auth = betterAuth({
     autoSignIn: false,
   },
   socialProviders,
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google", "github"],
+    },
+  },
   database: mongodbAdapter(db, {
     client,
   }),
